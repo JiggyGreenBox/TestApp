@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -18,15 +19,25 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.gms.auth.api.credentials.Credential;
 import com.google.android.gms.auth.api.credentials.Credentials;
 import com.google.android.gms.auth.api.credentials.HintRequest;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements MySMSBroadcastReceiver.otpCallBack {
 
     private static int RESOLVE_HINT = 1001;
+    private FragmentManager fragmentManager;
+    private static String PHONE_NUM_FRAGMENT = "PHONE_NUM_FRAGMENT";
 
-//    private GoogleApiClient googleApiClient;
+    //Declare the cb interface static in your activity
+    private static MySMSBroadcastReceiver.otpCallBack otpCallBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +56,28 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-//        googleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(Auth.CREDENTIALS_API)
-//                .build();
-
 //        requestHint();
 //        requestEmailHint();
+
+
+        // run to get app hash for message
+//        ArrayList<String> arrayList = new AppSignatureHelper(this).getAppSignatures();
+//        Log.e("hash", "" + arrayList);
+
+        // otp callback interface
+        otpCallBack = this;
+        MySMSBroadcastReceiver.registerCallback(otpCallBack);
+
+
+        // check if user is signed in
+        // else show phone number input
+        fragmentManager = getSupportFragmentManager();
+
+        FirstFragment firstFragment = new FirstFragment();
+        fragmentManager.beginTransaction()
+                .add(R.id.fragment_container_view_tag, firstFragment, PHONE_NUM_FRAGMENT)
+                .commit();
+
     }
 
     @Override
@@ -67,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        // noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -81,9 +108,6 @@ public class MainActivity extends AppCompatActivity {
         HintRequest hintRequest = new HintRequest.Builder()
                 .setPhoneNumberIdentifierSupported(true)
                 .build();
-
-//        PendingIntent intent = Auth.CredentialsApi.getHintPickerIntent(
-//                googleApiClient, hintRequest);
 
         PendingIntent intent = Credentials.getClient(this).getHintPickerIntent(hintRequest);
 
@@ -123,22 +147,56 @@ public class MainActivity extends AppCompatActivity {
                 Credential credential = data.getParcelableExtra(Credential.EXTRA_KEY);
 
                 if (credential != null) {
-//                    if (TextUtils.isEmpty(credential.getId())) {
-
                     Log.e("tag", "" + credential.getId());
-                    // credential.getId();  <-- will need to process phone number string
-
 
                     // set phone number in edit text
-                    Fragment navHostFragment = getSupportFragmentManager().getPrimaryNavigationFragment();
-                    assert navHostFragment != null;
-                    Fragment fragment = navHostFragment.getChildFragmentManager().getFragments().get(0);
-
-                    ((FirstFragment) fragment).setPhoneNumber(credential.getId());
-//                    }
+                    FirstFragment firstFragment = (FirstFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
+                    if (firstFragment != null) {
+                        firstFragment.setPhoneNumber(credential.getId());
+                    }
                 }
             }
         }
     }
 
+
+    public void getSMS() {
+        // Get an instance of SmsRetrieverClient, used to start listening for a matching
+        // SMS message.
+        SmsRetrieverClient client = SmsRetriever.getClient(this /* context */);
+
+        // Starts SmsRetriever, which waits for ONE matching SMS message until timeout
+        // (5 minutes). The matching SMS message will be sent via a Broadcast Intent with
+        // action SmsRetriever#SMS_RETRIEVED_ACTION.
+        Task<Void> task = client.startSmsRetriever();
+
+        // Listen for success/failure of the start Task. If in a background thread, this
+        // can be made blocking using Tasks.await(task, [timeout]);
+        task.addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                // Successfully started retriever, expect broadcast intent
+                // ...
+                Log.e("getSMS", "success");
+            }
+        });
+
+        task.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // Failed to start retriever, inspect Exception for more details
+                // ...
+                Log.e("getSMS", "onFailure");
+            }
+        });
+    }
+
+
+    @Override
+    public void otpRead(String otp) {
+        FirstFragment firstFragment = (FirstFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
+        if (firstFragment != null) {
+            firstFragment.setOTP(otp);
+        }
+    }
 }

@@ -15,6 +15,7 @@ import androidx.navigation.fragment.NavHostFragment;
 public class FirstFragment extends Fragment {
 
     EditText et_phone_no;
+    EditText et_OTP;
 
     @Override
     public View onCreateView(
@@ -27,6 +28,8 @@ public class FirstFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        et_OTP = view.findViewById(R.id.editTextOTP);
 
         et_phone_no = view.findViewById(R.id.editTextPhone);
         et_phone_no.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -43,14 +46,28 @@ public class FirstFragment extends Fragment {
         view.findViewById(R.id.button_first).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NavHostFragment.findNavController(FirstFragment.this)
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
+//                NavHostFragment.findNavController(FirstFragment.this)
+//                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
+
+                showEditTextOTP();
+
+                Activity act = getActivity();
+                assert act != null;
+                ((MainActivity) act).getSMS();
             }
         });
     }
 
     public void setPhoneNumber(String phoneNumber) {
         et_phone_no.setText(phoneNumber);
+    }
+
+    public void showEditTextOTP() {
+        et_OTP.setVisibility(View.VISIBLE);
+    }
+
+    public void setOTP(String otp) {
+        et_OTP.setText(otp);
     }
 
 
