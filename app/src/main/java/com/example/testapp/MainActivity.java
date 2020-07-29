@@ -54,9 +54,11 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+//        setTheme(R.style.Splash);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("GPS PRESENCE SYSTEM");
         setSupportActionBar(toolbar);
 
 //        FloatingActionButton fab = findViewById(R.id.fab);
