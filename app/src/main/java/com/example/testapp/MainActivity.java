@@ -12,7 +12,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -32,8 +31,6 @@ import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.paytm.pgsdk.PaytmUtility;
 
 import org.json.JSONArray;
@@ -46,6 +43,8 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     private FragmentManager fragmentManager;
     private static String PHONE_NUM_FRAGMENT = "PHONE_NUM_FRAGMENT";
     private static String PAYMENT_FRAGMENT = "PAYMENT_FRAGMENT";
+    private static String SPLASH_FRAGMENT = "SPLASH_FRAGMENT";
+    private static String HOME_FRAGMENT = "HOME_FRAGMENT";
 
 
     private static String url_test = "https://fuelmaster.greenboxinnovations.in/api/cars/1/11";
@@ -60,19 +59,16 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+//        FloatingActionButton fab = findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 
-        testVolley();
-
-//        requestHint();
-//        requestEmailHint();
+        // check shared prefs
 
 
         // run to get app hash for message
@@ -88,19 +84,11 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         // else show phone number input
         fragmentManager = getSupportFragmentManager();
 
-        FirstFragment firstFragment = new FirstFragment();
+        // load splash fragment
+        SplashFragment splashFragment = new SplashFragment();
         fragmentManager.beginTransaction()
-                .add(R.id.fragment_container_view_tag, firstFragment, PHONE_NUM_FRAGMENT)
+                .add(R.id.fragment_container_view_tag, splashFragment, SPLASH_FRAGMENT)
                 .commit();
-
-//        PaymentFragment paymentFragment = new PaymentFragment();
-//        fragmentManager.beginTransaction()
-//                .add(R.id.fragment_container_view_tag, paymentFragment, PAYMENT_FRAGMENT)
-//                .commit();
-
-//        Log.e("PAYTM VERSION", "version: " + getPaytmVersion(this));
-
-
     }
 
     @Override
@@ -173,10 +161,10 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                     Log.e("tag", "" + credential.getId());
 
                     // set phone number in edit text
-                    FirstFragment firstFragment = (FirstFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
-                    if (firstFragment != null) {
-                        String ph_no =  credential.getId().replace("+91", "");
-                        firstFragment.setPhoneNumber(ph_no);
+                    LoginFragment loginFragment = (LoginFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
+                    if (loginFragment != null) {
+                        String ph_no = credential.getId().replace("+91", "");
+                        loginFragment.setPhoneNumber(ph_no);
                     }
                 }
             }
@@ -190,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     }
 
 
-    public void getSMS() {
+    public void startSMSListener() {
         // Get an instance of SmsRetrieverClient, used to start listening for a matching
         // SMS message.
         SmsRetrieverClient client = SmsRetriever.getClient(this /* context */);
@@ -224,9 +212,9 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
 
     @Override
     public void otpRead(String otp) {
-        FirstFragment firstFragment = (FirstFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
-        if (firstFragment != null) {
-            firstFragment.setOTP(otp);
+        LoginFragment loginFragment = (LoginFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
+        if (loginFragment != null) {
+            loginFragment.setOTP(otp);
         }
     }
 
@@ -300,6 +288,29 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
 
             Log.e("TEST", "MORE THAN 8.6.0");
         }
+    }
+
+
+    public void loadLoginFragment() {
+
+        LoginFragment loginFragment = new LoginFragment();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container_view_tag, loginFragment, PHONE_NUM_FRAGMENT)
+                .commit();
+    }
+
+    public void loadHomeFragment() {
+
+        HomeFragment homeFragment = new HomeFragment();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container_view_tag, homeFragment, HOME_FRAGMENT)
+                .commit();
+    }
+
+
+    public void saveTokens(String auth, String ref) {
+
+        HomeFragment homeFragment = new HomeFragment();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container_view_tag, homeFragment, HOME_FRAGMENT)
+                .commit();
     }
 
 

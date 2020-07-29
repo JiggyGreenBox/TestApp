@@ -1,7 +1,9 @@
 package com.example.testapp;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -25,6 +27,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONArray;
@@ -36,12 +43,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 
-public class FirstFragment extends Fragment {
+public class LoginFragment extends Fragment {
 
     EditText et_phone_no;
     EditText et_OTP;
     TextView tv_timer;
-    private boolean btn_click;
+    private boolean btn_click, btn_login_click;
     private ConstraintLayout layout;
 
     private Button btn_otp;
@@ -81,10 +88,9 @@ public class FirstFragment extends Fragment {
         });
 
 
-        btn_otp.findViewById(R.id.button_first).setOnClickListener(new View.OnClickListener() {
+        btn_otp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
 
                 String ph_no = et_phone_no.getText().toString();
                 if (ph_no.length() != 10) {
@@ -99,12 +105,26 @@ public class FirstFragment extends Fragment {
                     btn_click = true;
                     requestOTP(ph_no);
                 }
+            }
+        });
 
-//                showEditTextOTP();
-//
-//                Activity act = getActivity();
-//                assert act != null;
-//                ((MainActivity) act).getSMS();
+        btn_login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                String ph_no = et_phone_no.getText().toString();
+                String otp = et_OTP.getText().toString();
+
+                if ((ph_no.length() == 10) && (otp.length() == 4)) {
+                    // input is ok
+                    btn_login_click = true;
+                    verifyOTP(ph_no, otp);
+                } else {
+                    // input is wrong
+                    Snackbar snackbar = Snackbar
+                            .make(layout, "Check Phone Number and OTP", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
+                }
             }
         });
     }
@@ -131,6 +151,10 @@ public class FirstFragment extends Fragment {
         timerHandler.postDelayed(timerRunnable, 0);
 
         // sms listener
+        Activity act = getActivity();
+        if (act != null) {
+            ((MainActivity) act).startSMSListener();
+        }
     }
 
     public void setOTP(String otp) {
@@ -142,6 +166,7 @@ public class FirstFragment extends Fragment {
 
         if (btn_click) {
             btn_click = false;
+
             // Initialize a new JsonObjectRequest instance
             HashMap<String, String> params = new HashMap<String, String>();
             params.put("ph_no", ph_no);
@@ -168,7 +193,7 @@ public class FirstFragment extends Fragment {
                     //Handle Errors here
                     NetworkResponse networkResponse = error.networkResponse;
                     if (networkResponse != null && networkResponse.statusCode == 409) {
-                        // HTTP Status Code: 401 Unauthorized
+                        // HTTP Status Code: 409 Client error
                         try {
                             String jsonString = new String(networkResponse.data, HttpHeaderParser.parseCharset(networkResponse.headers));
                             JSONObject obj = new JSONObject(jsonString);
@@ -188,6 +213,84 @@ public class FirstFragment extends Fragment {
             MySingleton.getInstance(getActivity()).addToRequestQueue(jsonObjectRequest);
         }
     }
+
+
+    private void verifyOTP(String ph_no, String otp) {
+        if (btn_login_click) {
+            btn_login_click = false;
+
+            // Initialize a new JsonObjectRequest instance
+            HashMap<String, String> params = new HashMap<String, String>();
+            params.put("ph_no", ph_no);
+            params.put("otp", otp);
+            JSONObject jsonObject = new JSONObject(params);
+
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(AppConstants.OTP_VERIFY_URL, jsonObject,
+                    new Response.Listener<JSONObject>() {
+                        @SuppressLint("ApplySharedPref")
+                        @Override
+                        public void onResponse(JSONObject response) {
+
+                            btn_login_click = true;
+
+                            Log.e("OTP_VERIFY_URL", "" + response);
+                            try {
+                                //Do stuff here
+
+
+                                String auth = response.getString("auth");
+                                String ref = response.getString("ref");
+
+                                // check shared prefs
+                                Activity act = getActivity();
+                                if (act != null) {
+                                    SharedPreferences sharedPreferences = act.getApplicationContext().getSharedPreferences("loginPrefs", Context.MODE_PRIVATE);
+
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                                    long timestamp = System.currentTimeMillis();
+
+                                    editor.putString("auth", auth);
+                                    editor.putLong("auth_timestamp", timestamp);
+                                    editor.putString("ref", ref);
+                                    editor.commit();
+
+                                    ((MainActivity) act).loadHomeFragment();
+                                }
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    //Handle Errors here
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (networkResponse != null && networkResponse.statusCode == 409) {
+                        // HTTP Status Code: 409 Client error
+                        try {
+                            String jsonString = new String(networkResponse.data, HttpHeaderParser.parseCharset(networkResponse.headers));
+                            JSONObject obj = new JSONObject(jsonString);
+                            String message = obj.getString("message");
+                            Log.e("NetworkResponse", message);
+                            Snackbar.make(layout, message, Snackbar.LENGTH_SHORT).show();
+                        } catch (UnsupportedEncodingException | JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    Log.e("OTP_VERIFY_URL", error.toString());
+                    btn_login_click = true;
+                }
+            });
+
+            MySingleton.getInstance(getActivity()).addToRequestQueue(jsonObjectRequest);
+
+        }
+    }
+
 
     Handler timerHandler = new Handler();
     Runnable timerRunnable = new Runnable() {
@@ -209,6 +312,8 @@ public class FirstFragment extends Fragment {
 
                 btn_login.setVisibility(View.GONE);
                 btn_otp.setVisibility(View.VISIBLE);
+                et_OTP.setText("");
+                et_OTP.setVisibility(View.GONE);
             }
         }
     };
@@ -233,8 +338,11 @@ public class FirstFragment extends Fragment {
 
                 btn_login.setVisibility(View.GONE);
                 btn_otp.setVisibility(View.VISIBLE);
+                et_OTP.setVisibility(View.GONE);
             }
         }
 
     }
+
+
 }
