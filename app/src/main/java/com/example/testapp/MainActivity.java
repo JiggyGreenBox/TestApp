@@ -1,10 +1,13 @@
 package com.example.testapp;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -19,10 +22,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.api.credentials.Credential;
 import com.google.android.gms.auth.api.credentials.Credentials;
 import com.google.android.gms.auth.api.credentials.HintRequest;
@@ -31,9 +39,16 @@ import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.paytm.pgsdk.PaytmUtility;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity implements MySMSBroadcastReceiver.otpCallBack {
@@ -45,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     private static String PAYMENT_FRAGMENT = "PAYMENT_FRAGMENT";
     private static String SPLASH_FRAGMENT = "SPLASH_FRAGMENT";
     private static String HOME_FRAGMENT = "HOME_FRAGMENT";
+    private static String LOGIN_FRAGMENT = "LOGIN_FRAGMENT";
 
 
     private static String url_test = "https://fuelmaster.greenboxinnovations.in/api/cars/1/11";
@@ -59,36 +75,163 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//        FloatingActionButton fab = findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
+        // frag manager for routing
+        fragmentManager = getSupportFragmentManager();
 
         // check shared prefs
+        routeSharedPrefs();
 
-
+        //======== OTP STUFF ===============================================================
         // run to get app hash for message
-//        ArrayList<String> arrayList = new AppSignatureHelper(this).getAppSignatures();
-//        Log.e("hash", "" + arrayList);
-
+        // ArrayList<String> arrayList = new AppSignatureHelper(this).getAppSignatures();
+        // Log.e("hash", "" + arrayList);
         // otp callback interface
         otpCallBack = this;
         MySMSBroadcastReceiver.registerCallback(otpCallBack);
+        //=======================================================================
 
 
-        // check if user is signed in
-        // else show phone number input
-        fragmentManager = getSupportFragmentManager();
+    }
 
-        // load splash fragment
-        SplashFragment splashFragment = new SplashFragment();
-        fragmentManager.beginTransaction()
-                .add(R.id.fragment_container_view_tag, splashFragment, SPLASH_FRAGMENT)
-                .commit();
+
+    private void routeSharedPrefs() {
+        SharedPreferences loginPreferences = getApplicationContext().getSharedPreferences("loginPrefs", Context.MODE_PRIVATE);
+        if (loginPreferences.contains("auth")) {
+            Log.e("routeSharedPrefs", "contains");
+
+            // check auth validity
+            long auth_time = loginPreferences.getLong("auth_timestamp", 0);
+            if (auth_time != 0) {
+                long now = System.currentTimeMillis();
+                long validTill = auth_time + AppConstants.AUTH_VALID_TIME;
+
+                // expired
+                if (now > validTill) {
+                    Log.e("TAGME", "auth expired");
+                    String ref = loginPreferences.getString("ref", "");
+                    if (ref != null && !ref.equals("")) {
+                        Log.e("ref", ref);
+                        verifyRef(ref);
+                    }
+                }
+                // valid
+                else {
+                    Log.e("routeSharedPrefs", "auth valid");
+                    getCarsAndPending();
+                }
+            }
+
+        } else {
+            // auth not found go to login
+            Log.e("routeSharedPrefs", "auth not found");
+            loadLoginFragment();
+        }
+    }
+
+    private void verifyRef(String ref) {
+
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("ref", ref);
+        JSONObject jsonObject = new JSONObject(params);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(AppConstants.REF_VERIFY_URL, jsonObject,
+                new Response.Listener<JSONObject>() {
+                    @SuppressLint("ApplySharedPref")
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+
+                        Log.e("REF_VERIFY_URL", "" + response);
+                        try {
+                            // get updated strings
+                            String auth = response.getString("auth");
+
+                            // check shared prefs
+                            SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("loginPrefs", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                            long timestamp = System.currentTimeMillis();
+
+                            editor.putString("auth", auth);
+                            editor.putLong("auth_timestamp", timestamp);
+                            editor.commit();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //Handle Errors here
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse != null && networkResponse.statusCode == 409) {
+                    // HTTP Status Code: 409 Client error
+                    try {
+                        String jsonString = new String(networkResponse.data, HttpHeaderParser.parseCharset(networkResponse.headers));
+                        JSONObject obj = new JSONObject(jsonString);
+                        String message = obj.getString("message");
+                        Log.e("NetworkResponse", message);
+                        //Snackbar.make(layout, message, Snackbar.LENGTH_SHORT).show();
+                    } catch (UnsupportedEncodingException | JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                Log.e("REF_VERIFY_URL", error.toString());
+            }
+        });
+
+        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+    }
+
+
+    private void getCarsAndPending() {
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, AppConstants.CARS_PENDING_URL,
+                null, new Response.Listener<JSONObject>() {
+
+            @Override
+            public void onResponse(JSONObject response) {
+
+                Log.e("cars_pending", response.toString());
+//                activity.hideDialog();
+//                try {
+//                    activity.onRequestServed(response, code);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e("cars_pending", "Error: " + error.getMessage());
+//                Log.e(tag, "Site Info Error: " + error.getMessage());
+//                Toast.makeText(activity.getApplicationContext(),
+//                        error.getMessage(), Toast.LENGTH_SHORT).show();
+//                activity.hideDialog();
+//                try {
+//                    activity.onRequestServed(null, code);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+            }
+        }) {
+
+            /**
+             * Passing some request headers
+             */
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                //headers.put("Content-Type", "application/json");
+                headers.put("key", "Value");
+                return headers;
+            }
+        };
+
+
+        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
     @Override
@@ -161,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                     Log.e("tag", "" + credential.getId());
 
                     // set phone number in edit text
-                    LoginFragment loginFragment = (LoginFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
+                    LoginFragment loginFragment = (LoginFragment) fragmentManager.findFragmentByTag(LOGIN_FRAGMENT);
                     if (loginFragment != null) {
                         String ph_no = credential.getId().replace("+91", "");
                         loginFragment.setPhoneNumber(ph_no);
@@ -212,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
 
     @Override
     public void otpRead(String otp) {
-        LoginFragment loginFragment = (LoginFragment) fragmentManager.findFragmentByTag(PHONE_NUM_FRAGMENT);
+        LoginFragment loginFragment = (LoginFragment) fragmentManager.findFragmentByTag(LOGIN_FRAGMENT);
         if (loginFragment != null) {
             loginFragment.setOTP(otp);
         }
@@ -294,11 +437,12 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     public void loadLoginFragment() {
 
         LoginFragment loginFragment = new LoginFragment();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container_view_tag, loginFragment, PHONE_NUM_FRAGMENT)
+        fragmentManager.beginTransaction()
+                .add(R.id.fragment_container_view_tag, loginFragment, LOGIN_FRAGMENT)
                 .commit();
     }
 
-    public void loadHomeFragment() {
+    public void loadHomeFragment(String cars, String pending) {
 
         HomeFragment homeFragment = new HomeFragment();
         fragmentManager.beginTransaction().replace(R.id.fragment_container_view_tag, homeFragment, HOME_FRAGMENT)
@@ -306,39 +450,6 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     }
 
 
-    public void saveTokens(String auth, String ref) {
 
-        HomeFragment homeFragment = new HomeFragment();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container_view_tag, homeFragment, HOME_FRAGMENT)
-                .commit();
-    }
-
-
-    private void testVolley() {
-        // Initialize a new JsonArrayRequest instance
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
-                Request.Method.GET,
-                url_test,
-                null,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        // Do something with response
-                        //mTextView.setText(response.toString());
-                        Log.e("volley", "" + response);
-
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // Do something when error occurred
-                        Log.e("volley error", error.toString());
-                    }
-                }
-        );
-
-        MySingleton.getInstance(this.getApplicationContext()).addToRequestQueue(jsonArrayRequest);
-    }
 
 }

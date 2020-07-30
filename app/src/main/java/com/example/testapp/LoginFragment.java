@@ -240,6 +240,9 @@ public class LoginFragment extends Fragment {
 
                                 String auth = response.getString("auth");
                                 String ref = response.getString("ref");
+                                String cars = response.getString("cars");
+                                String pending = response.getString("pending");
+
 
                                 // check shared prefs
                                 Activity act = getActivity();
@@ -255,7 +258,7 @@ public class LoginFragment extends Fragment {
                                     editor.putString("ref", ref);
                                     editor.commit();
 
-                                    ((MainActivity) act).loadHomeFragment();
+                                    ((MainActivity) act).loadHomeFragment(cars, pending);
                                 }
 
 
