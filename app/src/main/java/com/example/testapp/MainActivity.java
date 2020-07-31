@@ -12,14 +12,19 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
 
 import com.android.volley.AuthFailureError;
@@ -61,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     private static String SPLASH_FRAGMENT = "SPLASH_FRAGMENT";
     private static String HOME_FRAGMENT = "HOME_FRAGMENT";
     private static String LOGIN_FRAGMENT = "LOGIN_FRAGMENT";
+    private static String HISTORY_FRAGMENT = "HISTORY_FRAGMENT";
+    private static String PENDING_FRAGMENT = "PENDING_FRAGMENT";
 
 
     private static String url_test = "https://fuelmaster.greenboxinnovations.in/api/cars/1/11";
@@ -75,11 +82,25 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         // frag manager for routing
         fragmentManager = getSupportFragmentManager();
 
+//        fragmentManager.beginTransaction()
+//                .add(R.id.fl_pending, new PendingSingle(), PENDING_FRAGMENT)
+//                .commit();
+
+        fragmentManager.beginTransaction()
+                .add(R.id.fl_pay, new PaymentFragment(), PAYMENT_FRAGMENT)
+                .commit();
+
+
+        fragmentManager.beginTransaction()
+                .add(R.id.fl_history, new HistoryFragment(), HISTORY_FRAGMENT)
+                .commit();
+
         // check shared prefs
-        routeSharedPrefs();
+//        routeSharedPrefs();
 
         //======== OTP STUFF ===============================================================
         // run to get app hash for message
@@ -93,6 +114,14 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
 
     }
 
+
+
+
+    public void loadPendingQR() {
+        fragmentManager.beginTransaction()
+                .add(R.id.fl_pending, new PendingSingle(), PENDING_FRAGMENT)
+                .commit();
+    }
 
     private void routeSharedPrefs() {
         SharedPreferences loginPreferences = getApplicationContext().getSharedPreferences("loginPrefs", Context.MODE_PRIVATE);
@@ -448,8 +477,6 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         fragmentManager.beginTransaction().replace(R.id.fragment_container_view_tag, homeFragment, HOME_FRAGMENT)
                 .commit();
     }
-
-
 
 
 }

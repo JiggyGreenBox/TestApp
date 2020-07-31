@@ -81,7 +81,10 @@ public class PaymentFragment extends Fragment {
             public void onClick(View view) {
                 Activity act = getActivity();
                 assert act != null;
-                ((MainActivity) act).invokePaytm();
+//                ((MainActivity) act).invokePaytm();
+
+                ((MainActivity) act).loadPendingQR();
+
             }
         });
     }
