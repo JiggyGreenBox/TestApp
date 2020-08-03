@@ -1,52 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".PendingSingle">
+    android:layout_margin="@dimen/dimen_12dp"
+    android:elevation="2dp"
+    app:cardCornerRadius="5dp"
+    tools:context=".PendingSingleFragment">
 
-    <TextView
-        android:layout_margin="16dp"
-        android:id="@+id/tv_plate"
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="MH12CT1374"
-        android:textSize="30sp"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:padding="@dimen/dimen_12dp">
+
+        <TextView
+            android:id="@+id/tv_plate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_margin="16dp"
+            android:text="MH12CT1374"
+            android:textSize="30sp"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
-    <ImageView
-        android:id="@+id/im_pending_qr"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_launcher_foreground"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_plate" />
+        <ImageView
+            android:id="@+id/im_pending_qr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_plate"
+
+            android:src="@drawable/ic_launcher_foreground" />
 
 
-    <TextView
-        android:id="@+id/tv_amount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="2000"
-        android:textSize="60sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/im_pending_qr" />
+        <TextView
+            android:id="@+id/tv_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/im_pending_qr"
+            android:text="2000"
+            android:textSize="60sp" />
 
 
-    <TextView
-        android:id="@+id/tv_fuel_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="PETROL"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_amount" />
+        <TextView
+            android:id="@+id/tv_fuel_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_amount"
+            android:text="PETROL"
+            android:textSize="30sp" />
 
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

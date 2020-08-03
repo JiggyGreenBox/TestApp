@@ -1,7 +1,6 @@
 package com.example.testapp;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,19 +11,14 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
 
 import com.android.volley.AuthFailureError;
@@ -34,7 +28,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.HttpHeaderParser;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.api.credentials.Credential;
 import com.google.android.gms.auth.api.credentials.Credentials;
@@ -44,10 +37,8 @@ import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
 import com.paytm.pgsdk.PaytmUtility;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -68,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     private static String LOGIN_FRAGMENT = "LOGIN_FRAGMENT";
     private static String HISTORY_FRAGMENT = "HISTORY_FRAGMENT";
     private static String PENDING_FRAGMENT = "PENDING_FRAGMENT";
+    private static String LOGO_FRAGMENT = "LOGO_FRAGMENT";
 
 
     private static String url_test = "https://fuelmaster.greenboxinnovations.in/api/cars/1/11";
@@ -86,6 +78,14 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         // frag manager for routing
         fragmentManager = getSupportFragmentManager();
 
+
+        // check shared prefs
+        routeSharedPrefs();
+
+        fragmentManager.beginTransaction()
+                .add(R.id.fl_pending, new LogoFragment(), LOGO_FRAGMENT)
+                .commit();
+
 //        fragmentManager.beginTransaction()
 //                .add(R.id.fl_pending, new PendingSingle(), PENDING_FRAGMENT)
 //                .commit();
@@ -99,8 +99,6 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                 .add(R.id.fl_history, new HistoryFragment(), HISTORY_FRAGMENT)
                 .commit();
 
-        // check shared prefs
-//        routeSharedPrefs();
 
         //======== OTP STUFF ===============================================================
         // run to get app hash for message
@@ -115,11 +113,12 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     }
 
 
+    public void loadPendingQRLarge(String amount, String fuel_type, String trans_qr) {
 
+        PendingSingleFragment pendingSingleFragment = PendingSingleFragment.newInstance(amount, fuel_type, trans_qr);
 
-    public void loadPendingQR() {
         fragmentManager.beginTransaction()
-                .add(R.id.fl_pending, new PendingSingle(), PENDING_FRAGMENT)
+                .add(R.id.fl_pending, pendingSingleFragment, PENDING_FRAGMENT)
                 .commit();
     }
 
@@ -146,6 +145,8 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                 // valid
                 else {
                     Log.e("routeSharedPrefs", "auth valid");
+                    String auth = loginPreferences.getString("auth", "");
+                    Log.e("auth", auth);
                     getCarsAndPending();
                 }
             }
@@ -153,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         } else {
             // auth not found go to login
             Log.e("routeSharedPrefs", "auth not found");
-            loadLoginFragment();
+            loadLoginActivity();
         }
     }
 
@@ -463,12 +464,12 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     }
 
 
-    public void loadLoginFragment() {
+    public void loadLoginActivity() {
 
-        LoginFragment loginFragment = new LoginFragment();
-        fragmentManager.beginTransaction()
-                .add(R.id.fragment_container_view_tag, loginFragment, LOGIN_FRAGMENT)
-                .commit();
+        Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
+        MainActivity.this.startActivity(myIntent);
+        finish();
+
     }
 
     public void loadHomeFragment(String cars, String pending) {

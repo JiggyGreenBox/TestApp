@@ -23,15 +23,27 @@ import static android.graphics.Color.BLACK;
 import static android.graphics.Color.WHITE;
 
 
-public class PendingSingle extends Fragment {
+public class PendingSingleFragment extends Fragment {
 
     ImageView imageView;
 
     public final static int WIDTH = 800;
     public final static int HEIGHT = 800;
 
-    public PendingSingle() {
+    public PendingSingleFragment() {
         // Required empty public constructor
+    }
+
+    public static PendingSingleFragment newInstance(String amount, String fuel_type, String trans_qr) {
+
+        Bundle args = new Bundle();
+        args.putString("amount", amount);
+        args.putString("fuel_type", fuel_type);
+        args.putString("trans_qr", trans_qr);
+
+        PendingSingleFragment fragment = new PendingSingleFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
 
 

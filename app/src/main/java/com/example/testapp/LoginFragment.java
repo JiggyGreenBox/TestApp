@@ -82,7 +82,7 @@ public class LoginFragment extends Fragment {
                 if (b) {
                     Activity act = getActivity();
                     assert act != null;
-                    ((MainActivity) act).requestHint();
+                    ((LoginActivity) act).requestHint();
                 }
             }
         });
@@ -153,7 +153,7 @@ public class LoginFragment extends Fragment {
         // sms listener
         Activity act = getActivity();
         if (act != null) {
-            ((MainActivity) act).startSMSListener();
+            //((MainActivity) act).startSMSListener();
         }
     }
 
@@ -258,7 +258,8 @@ public class LoginFragment extends Fragment {
                                     editor.putString("ref", ref);
                                     editor.commit();
 
-                                    ((MainActivity) act).loadHomeFragment(cars, pending);
+                                    //((MainActivity) act).loadHomeFragment(cars, pending);
+                                    ((LoginActivity) act).loginSuccess();
                                 }
 
 

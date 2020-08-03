@@ -70,7 +70,7 @@ public class SplashFragment extends Fragment {
                 // auth not found go to login
                 Log.e("SplashFragment", "auth not found");
 
-                ((MainActivity) act).loadLoginFragment();
+//                ((MainActivity) act).loadLoginFragment();
             }
         }
 

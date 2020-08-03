@@ -26,8 +26,7 @@
             <FrameLayout
                 android:id="@+id/fl_pay"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:background="@color/red" />
+                android:layout_height="400dp" />
 
             <FrameLayout
                 android:id="@+id/fl_history"
