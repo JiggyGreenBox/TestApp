@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -26,6 +27,7 @@ import static android.graphics.Color.WHITE;
 public class PendingSingleFragment extends Fragment {
 
     ImageView imageView;
+    TextView tv_amount, tv_fuel_type;
 
     public final static int WIDTH = 800;
     public final static int HEIGHT = 800;
@@ -69,11 +71,30 @@ public class PendingSingleFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         imageView = view.findViewById(R.id.im_pending_qr);
 
-        try {
-            Bitmap bitmap = encodeAsBitmap("jiggy");
-            imageView.setImageBitmap(bitmap);
-        } catch (WriterException e) {
-            e.printStackTrace();
+        tv_amount = view.findViewById(R.id.tv_amount);
+        tv_fuel_type = view.findViewById(R.id.tv_fuel_type);
+
+        String qr = "invalid";
+        String amount = "invalid";
+        String fuel_type = "invalid";
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            qr = bundle.getString("trans_qr", "invalid");
+            amount = bundle.getString("amount", "invalid");
+            fuel_type = bundle.getString("fuel_type", "invalid");
+
+            tv_amount.setText(amount);
+            tv_fuel_type.setText(fuel_type);
+        }
+
+        if (!qr.equals("invalid")) {
+
+            try {
+                Bitmap bitmap = encodeAsBitmap(qr);
+                imageView.setImageBitmap(bitmap);
+            } catch (WriterException e) {
+                e.printStackTrace();
+            }
         }
     }
 
