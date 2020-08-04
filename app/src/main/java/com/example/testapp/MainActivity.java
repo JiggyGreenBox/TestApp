@@ -37,6 +37,7 @@ import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.paytm.pgsdk.PaytmUtility;
 
 import org.json.JSONException;
@@ -139,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                     String ref = loginPreferences.getString("ref", "");
                     if (ref != null && !ref.equals("")) {
                         Log.e("ref", ref);
+
                         verifyRef(ref);
                     }
                 }
@@ -160,8 +162,12 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
 
     private void verifyRef(String ref) {
 
+        // get firebase id
+        String fb_token = MyFirebaseMessagingService.getToken(getApplicationContext());
+
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("ref", ref);
+        params.put("fb_token", fb_token);
         JSONObject jsonObject = new JSONObject(params);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(AppConstants.REF_VERIFY_URL, jsonObject,

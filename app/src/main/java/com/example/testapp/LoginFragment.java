@@ -219,10 +219,20 @@ public class LoginFragment extends Fragment {
         if (btn_login_click) {
             btn_login_click = false;
 
+
+            // get firebase id
+            String fb_token = "";
+            Activity act = getActivity();
+            if (act != null) {
+                fb_token = MyFirebaseMessagingService.getToken(act.getApplicationContext());
+            }
+
+
             // Initialize a new JsonObjectRequest instance
             HashMap<String, String> params = new HashMap<String, String>();
             params.put("ph_no", ph_no);
             params.put("otp", otp);
+            params.put("fb_token", fb_token);
             JSONObject jsonObject = new JSONObject(params);
 
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(AppConstants.OTP_VERIFY_URL, jsonObject,
