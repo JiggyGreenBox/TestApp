@@ -5,6 +5,11 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.1"
 
+    // for exoplayer
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId "com.example.testapp"
         minSdkVersion 22
@@ -60,6 +65,12 @@ dependencies {
 
     // fcm messages
     implementation 'com.google.firebase:firebase-messaging:20.2.4'
+
+
+    // exoplayer
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.11.6'
+    implementation 'com.google.android.exoplayer:exoplayer-dash:2.11.6'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.11.6'
 
 }
 

@@ -207,6 +207,17 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                         String jsonString = new String(networkResponse.data, HttpHeaderParser.parseCharset(networkResponse.headers));
                         JSONObject obj = new JSONObject(jsonString);
                         String message = obj.getString("message");
+                        if (message.equals("Token Invalid")) {
+
+                            // erase shared prefs
+                            SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("loginPrefs", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.clear();
+                            editor.apply();
+                            
+                            loadLoginActivity();
+                            finish();
+                        }
                         Log.e("NetworkResponse", message);
                         //Snackbar.make(layout, message, Snackbar.LENGTH_SHORT).show();
                     } catch (UnsupportedEncodingException | JSONException e) {
