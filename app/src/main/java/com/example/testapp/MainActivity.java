@@ -1,14 +1,19 @@
 package com.example.testapp;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -75,6 +80,11 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // createNotificationChannel
+        createNotificationChannel();
+
+        // register receiver for token update
+        registerReceiver(myReceiver, new IntentFilter(MyFirebaseMessagingService.UPDATE_FCM_TOKEN));
 
         // frag manager for routing
         fragmentManager = getSupportFragmentManager();
@@ -214,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.clear();
                             editor.apply();
-                            
+
                             loadLoginActivity();
                             finish();
                         }
@@ -497,4 +507,36 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     }
 
 
+    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.e("update fcm token", "update");
+            // TODO remove manifest false cache, and make route to update FCM {auth,ref, token}
+        }
+    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(myReceiver);
+    }
+
+    // required for notifications to work properly
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = AppConstants.channel_name;
+            String description = AppConstants.description;
+            //int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            // heads up attempt
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel(AppConstants.CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 }

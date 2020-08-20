@@ -76,7 +76,7 @@ public class TransactionVideoActivity extends AppCompatActivity {
         playerView.setPlayer(player);
 
 //        Uri uri = Uri.parse("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
-        Uri uri = Uri.parse("http://192.168.0.107/slim_test/view_video");
+        Uri uri = Uri.parse(AppConstants.VID_VIEW_URL);
 
         MediaSource mediaSource = buildMediaSource(uri);
 
