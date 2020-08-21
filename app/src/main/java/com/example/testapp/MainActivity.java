@@ -45,6 +45,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.paytm.pgsdk.PaytmUtility;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -135,6 +136,12 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
 
     private void routeSharedPrefs() {
         SharedPreferences loginPreferences = getApplicationContext().getSharedPreferences("loginPrefs", Context.MODE_PRIVATE);
+
+        Log.e("fb_changed", "fb_changed");
+        String fb = MyFirebaseMessagingService.getToken(this);
+        Log.e("fb_changed", fb);
+
+
         if (loginPreferences.contains("auth")) {
             Log.e("routeSharedPrefs", "contains");
 
@@ -159,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                     Log.e("routeSharedPrefs", "auth valid");
                     String auth = loginPreferences.getString("auth", "");
                     Log.e("auth", auth);
-                    getCarsAndPending();
+                    getCarsAndPending(auth);
                 }
             }
 
@@ -192,11 +199,16 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
                             // get updated strings
                             String auth = response.getString("auth");
 
+                            // get cars
+                            JSONArray cars = response.getJSONArray("cars");
+                            updateCarsPaymentFragment(cars);
+
                             // check shared prefs
                             SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("loginPrefs", Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = sharedPreferences.edit();
 
                             long timestamp = System.currentTimeMillis();
+
 
                             editor.putString("auth", auth);
                             editor.putLong("auth_timestamp", timestamp);
@@ -243,43 +255,37 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     }
 
 
-    private void getCarsAndPending() {
+    private void getCarsAndPending(String auth) {
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, AppConstants.CARS_PENDING_URL,
+        String url = String.format(AppConstants.CARS_PENDING_URL + "?token=%1$s",
+                auth);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
                 null, new Response.Listener<JSONObject>() {
 
             @Override
             public void onResponse(JSONObject response) {
 
                 Log.e("cars_pending", response.toString());
-//                activity.hideDialog();
-//                try {
-//                    activity.onRequestServed(response, code);
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
+
+                try {
+                    JSONArray cars = response.getJSONArray("cars");
+                    updateCarsPaymentFragment(cars);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e("cars_pending", "Error: " + error.getMessage());
-//                Log.e(tag, "Site Info Error: " + error.getMessage());
-//                Toast.makeText(activity.getApplicationContext(),
-//                        error.getMessage(), Toast.LENGTH_SHORT).show();
-//                activity.hideDialog();
-//                try {
-//                    activity.onRequestServed(null, code);
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
+
             }
         }) {
 
-            /**
-             * Passing some request headers
-             */
             @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
+            public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<String, String>();
                 //headers.put("Content-Type", "application/json");
                 headers.put("key", "Value");
@@ -491,6 +497,20 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
     }
 
 
+    // update cars in payment fragment
+    private void updateCarsPaymentFragment(JSONArray cars) {
+        if (fragmentManager != null) {
+
+            if (cars != null && cars.length() > 0) {
+                PaymentFragment paymentFragment = (PaymentFragment) fragmentManager.findFragmentByTag(PAYMENT_FRAGMENT);
+                assert paymentFragment != null;
+                paymentFragment.updateCars(cars);
+            }
+        }
+
+    }
+
+
     public void loadLoginActivity() {
 
         Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
@@ -539,4 +559,6 @@ public class MainActivity extends AppCompatActivity implements MySMSBroadcastRec
             notificationManager.createNotificationChannel(channel);
         }
     }
+
+
 }

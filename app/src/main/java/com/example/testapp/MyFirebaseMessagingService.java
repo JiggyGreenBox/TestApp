@@ -38,7 +38,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String message = data.get("message");
         Log.e("FIREBASE", "Message Notification Body: " + message);
 
-        createNotification();
+        createNotification(message);
     }
 
     @Override
@@ -46,6 +46,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         super.onNewToken(s);
         Log.e("FIREBASE TOKEN", s);
         getSharedPreferences("_", MODE_PRIVATE).edit().putString("fb", s).apply();
+        getSharedPreferences("_", MODE_PRIVATE).edit().putBoolean("fb_update", true).apply();
 
         Intent intent = new Intent(UPDATE_FCM_TOKEN);
         sendBroadcast(intent);
@@ -55,7 +56,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         return context.getSharedPreferences("_", MODE_PRIVATE).getString("fb", "empty");
     }
 
-    private void createNotification() {
+    private void createNotification(String message) {
 
         // Create an explicit intent for an Activity in your app
         Intent intent = new Intent(this, TransactionVideoActivity.class);
@@ -66,8 +67,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, AppConstants.CHANNEL_ID)
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.paytm_assist_icon)
-                .setContentTitle("My notification")
-                .setContentText("Much longer text that cannot fit one line...")
+                .setContentTitle("Pump Master")
+                //.setContentText("Much longer text that cannot fit one line...")
+                .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle()
                         .bigText("Much longer text that cannot fit one line..."))
                 //.setPriority(NotificationCompat.PRIORITY_DEFAULT);

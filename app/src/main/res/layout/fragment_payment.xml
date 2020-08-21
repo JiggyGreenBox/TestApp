@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="@dimen/dimen_12dp"
     android:elevation="2dp"
     app:cardCornerRadius="5dp"
-    android:layout_margin="@dimen/dimen_12dp"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
@@ -13,19 +13,50 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:padding="@dimen/dimen_12dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:padding="@dimen/dimen_12dp">
+
+        <RelativeLayout
+            android:id="@+id/rl_select_cars"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Vehicle"
+
+
+                app:startIconDrawable="@drawable/ic_baseline_time_to_leave_30">
+
+                <AutoCompleteTextView
+                    android:id="@+id/filled_exposed_dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:inputType="none|textNoSuggestions"
+                    android:textSize="30sp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </RelativeLayout>
 
         <com.google.android.material.textfield.TextInputLayout
 
             android:id="@+id/editTextAmountLayout"
-
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
+            android:layout_below="@+id/rl_select_cars"
             android:hint="Amount"
-            android:padding="20dp"
             app:endIconMode="clear_text"
             app:startIconDrawable="@drawable/ic_rupee_indian_24px">
 
@@ -38,68 +69,130 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_add_100"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+
+        <LinearLayout
+            android:id="@+id/rl_add_amounts"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/editTextAmountLayout"
-            android:layout_marginLeft="20dp"
-            android:text="+100"
-            android:textColor="@color/colorPrimary"
-            android:textSize="20sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editTextAmountLayout"
-            app:strokeColor="@color/colorPrimary"
-            app:strokeWidth="2dp" />
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_add_500"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/editTextAmountLayout"
-            android:layout_toRightOf="@+id/btn_add_100"
-            android:layout_marginLeft="20dp"
-            android:text="+500"
-            android:textColor="@color/colorPrimary"
-            android:textSize="20sp"
-            app:layout_constraintStart_toEndOf="@+id/btn_add_100"
-            app:layout_constraintTop_toBottomOf="@+id/editTextAmountLayout"
-            app:strokeColor="@color/colorPrimary"
-            app:strokeWidth="2dp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_add_1000"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/editTextAmountLayout"
-            android:layout_toRightOf="@+id/btn_add_500"
-            android:layout_marginLeft="20dp"
-            android:text="+1000"
-            android:textColor="@color/colorPrimary"
-            android:textSize="20sp"
-            app:layout_constraintStart_toEndOf="@+id/btn_add_500"
-            app:layout_constraintTop_toBottomOf="@+id/editTextAmountLayout"
-            app:strokeColor="@color/colorPrimary"
-            app:strokeWidth="2dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_100"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
 
+
+                android:text="100"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                app:icon="@drawable/ic_baseline_add_18"
+                app:strokeColor="@color/colorPrimary"
+                app:strokeWidth="1.5dp" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_500"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+
+                android:text="500"
+
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                app:icon="@drawable/ic_baseline_add_18"
+
+
+                app:strokeColor="@color/colorPrimary"
+                app:strokeWidth="1.5dp" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_1000"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="1000"
+
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                app:icon="@drawable/ic_baseline_add_18"
+                app:strokeColor="@color/colorPrimary"
+                app:strokeWidth="1.5dp" />
+
+
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/pay_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/btn_add_500"
-            android:layout_margin="@dimen/dimen_16dp"
-            android:padding="20dp"
+            android:layout_below="@+id/radio_fuel_type"
+            android:layout_marginTop="@dimen/dimen_16dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
             android:text="PAY WITH UPI"
+            android:textColor="@color/white"
             android:textSize="20sp"
             android:theme="@style/Theme.MaterialComponents"
 
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_add_500" />
+            app:layout_constraintTop_toBottomOf="@+id/rl_add_amounts" />
+
+
+<!--        app:cornerRadius="4dp"-->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/radio_fuel_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/rl_add_amounts"
+            app:selectionRequired="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_radio_petrol"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:text="PETROL"
+                android:textSize="18sp"
+
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_radio_diesel"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:text="DIESEL"
+                android:textSize="18sp"
+
+                app:strokeWidth="2dp" />
+
+        </com.google.android.material.button.MaterialButtonToggleGroup>
 
 
     </RelativeLayout>
